@@ -55,12 +55,14 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.CustomViewHold
 
         final int position = holder.getAdapterPosition();
 
+        //If this is a new game, reset all data. If not a new game (restored), keep old data.
         if (isNewGame) {
             cards.get(position).isMatched = false;
             matchedPairCount = 0;
             score = 0;
         }
 
+        //If a card was previously MATCHED, make it INVISIBLE. If not matched yet, show its background.
         if (!cards.get(position).isMatched) {
             holder.cardImageView.setImageResource(cards.get(position).backgroundResId);
         } else if (cards.get(position).isMatched) {
@@ -68,6 +70,7 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.CustomViewHold
         }
 
 
+        //On item click
         holder.itemView.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -80,6 +83,7 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.CustomViewHold
                     flipCount++;
 
                     switch (flipCount) {
+                        //First card is flipped
                         case 1:
                             firstFlippedCardPosition = position;
                             firstCardId = cards.get(position).cardId;
@@ -88,6 +92,8 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.CustomViewHold
                             Log.i("1st flip", "card id: " + firstCardId);
 
                             break;
+
+                        //Second card is flipped. Check if it's a match, calculate score. Reset flipcount.
                         case 2:
                             secondCardId = cards.get(position).cardId;
                             holder.cardImageView.setImageResource(cards.get(position).foregroundResId);
@@ -95,21 +101,24 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.CustomViewHold
                             Log.i("2nd flip", "card 1 id: " + firstCardId);
                             Log.i("2nd flip", "card 2 id: " + secondCardId);
 
+                            //If the first flipped card and the second flipped card are identical, it's a match.
                             if (firstCardId == secondCardId) {
                                 score += 5;
                                 matchedPairCount += 1;
                                 Log.i("card matching", "IT'S A MATCH! :) New score: " + score);
                                 Log.i("card matching", "IT'S A MATCH! :) Matched pairs: " + matchedPairCount);
 
+                                //Set isMatched property to true
                                 for (Card card : cards) {
                                     if (firstCardId == card.cardId) {
                                         card.isMatched = true;
                                     }
                                 }
 
+                                //Notifiy onPairMatched listener about the new match.
                                 mOnScoreChangeListener.onPairMatched(cards.get(position).cardId, matchedPairCount);
 
-                                //if all 8 pairs are matched, notify OnScoreChangeListener.onFinalScore
+                                //If all 8 pairs are matched, notify OnScoreChangeListener.onFinalScore
                                 if (matchedPairCount == 8) {
                                     isWinner = true;
                                     Log.i("CONGRATS", "YOU HAVE WON. SCORE: " + score);
@@ -125,8 +134,6 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.CustomViewHold
                             }
 
                             firstFlippedCardPosition = -1;
-
-                            Log.i("secondclick", "isWinner: " + isWinner);
 
                             //implement 1 second pause to allow player to see the second card
                             Handler handler = new Handler();
@@ -169,6 +176,7 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.CustomViewHold
             super(itemView);
             cardImageView = itemView.findViewById(R.id.card_imageview);
 
+            //Set proper size of the cardImageView. "cardImageViewSize" was calculated in the MainActivity based on the actual screen size.
             android.view.ViewGroup.LayoutParams layoutParams = cardImageView.getLayoutParams();
             layoutParams.width = cardImageViewSize;
             layoutParams.height = cardImageViewSize;
@@ -178,6 +186,7 @@ public class GridAdapter extends RecyclerView.Adapter<GridAdapter.CustomViewHold
         }
     }
 
+    //Listener for score change
     public interface OnScoreChangeListener {
         void onScoreChanged(int score);
 

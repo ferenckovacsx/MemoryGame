@@ -23,13 +23,13 @@ import java.util.Collections;
 public class MainActivity extends AppCompatActivity {
 
     TextView scoreTextView;
-    ImageView highScoresBtn;
+    ImageView highScoresButton;
     RecyclerView gridRecyclerView;
     GridLayoutManager gridLayoutManager;
 
     ArrayList<Card> cards;
     ArrayList<Integer> orderedCards;
-    ArrayList<Integer> matchedCardsID = new ArrayList<>();
+    ArrayList<Integer> matchedCardIdList = new ArrayList<>();
 
     final String CURRENT_SCORE = "current_score";
     final String MATCHED_PAIR_COUNT = "matched_pair_count";
@@ -53,32 +53,32 @@ public class MainActivity extends AppCompatActivity {
 
             //Restore each cards state and position
             scoreTextViewValue = savedInstanceState.getInt(CURRENT_SCORE);
-            matchedCardsID = savedInstanceState.getIntegerArrayList(MATCHED_CARDS_LIST);
+            matchedCardIdList = savedInstanceState.getIntegerArrayList(MATCHED_CARDS_LIST);
             matchedPairCount = savedInstanceState.getInt(MATCHED_PAIR_COUNT);
             orderedCards = savedInstanceState.getIntegerArrayList(ORDER_OF_CARDS);
 //            savedRecyclerLayoutState = savedInstanceState.getParcelable("RECYCLE");
 
-            ArrayList<Card> orderedCardsList = new ArrayList<>();
+            ArrayList<Card> orderedCards = new ArrayList<>();
 
             //Get original position of each card
-            for (Integer position : orderedCards) {
+            for (Integer position : this.orderedCards) {
                 for (Card card : cards) {
                     if (card.position == position) {
-                        orderedCardsList.add(card);
+                        orderedCards.add(card);
                     }
                 }
             }
 
             //Set flipped/matched state of each card
-            for (Card card : orderedCardsList) {
-                for (Integer id : matchedCardsID) {
+            for (Card card : orderedCards) {
+                for (Integer id : matchedCardIdList) {
                     if (card.cardId == id) {
                         card.isMatched = true;
                     }
                 }
             }
 
-            startGame(false, orderedCardsList);
+            startGame(false, orderedCards);
 
         } else {
 
@@ -86,11 +86,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         scoreTextView = findViewById(R.id.currentScoreTextView);
-        highScoresBtn = findViewById(R.id.highScoresButton);
+        highScoresButton = findViewById(R.id.highScoresButton);
 
         scoreTextView.setText(String.valueOf(scoreTextViewValue));
 
-        highScoresBtn.setOnClickListener(new View.OnClickListener() {
+        //Highscores button onClick. Show HighScoresFragment
+        highScoresButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -111,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i("Main", "onSaveInstance score: " + scoreTextViewValue);
         state.putInt(CURRENT_SCORE, scoreTextViewValue);
         state.putInt(MATCHED_PAIR_COUNT, matchedPairCount);
-        state.putIntegerArrayList(MATCHED_CARDS_LIST, matchedCardsID);
+        state.putIntegerArrayList(MATCHED_CARDS_LIST, matchedCardIdList);
         state.putIntegerArrayList(ORDER_OF_CARDS, orderedCards);
 //        state.putParcelable("RECYCLE", gridRecyclerView.getLayoutManager().onSaveInstanceState());
 
@@ -125,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         if (state != null) {
             scoreTextViewValue = state.getInt(CURRENT_SCORE);
             matchedPairCount = state.getInt(MATCHED_PAIR_COUNT);
-            matchedCardsID = state.getIntegerArrayList(MATCHED_CARDS_LIST);
+            matchedCardIdList = state.getIntegerArrayList(MATCHED_CARDS_LIST);
             orderedCards = state.getIntegerArrayList(ORDER_OF_CARDS);
         }
     }
@@ -139,7 +140,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    //This method measures screen height and weight and sets the size of the cards accordingly (width/4)
+    //This method measures screen height and width and sets the size of the cards accordingly.
+    //There are 4 columns, so a card should be 1/4 of the screen WIDTH in portrait mode and 1/4 of HEIGHT in landscape mode.
     int getImageViewSize() {
 
         int cardImageViewSize;
@@ -155,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
         return cardImageViewSize;
     }
 
+    //Status bar height should be substracted from the screen height in case of landscape mode.
     public int getStatusBarHeight() {
         int result = 0;
         int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
@@ -168,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayList<Card> initCardsList() {
 
+        //To retain the position of each card in case of screen rotation, I needed to add a "position" property to each card (reason for duplicates)
         card_cc = instantiateCard(R.drawable.card_cc, 1, 1);
         card_cloud = instantiateCard(R.drawable.card_cloud, 2, 2);
         card_console = instantiateCard(R.drawable.card_console, 3, 3);
@@ -216,7 +220,8 @@ public class MainActivity extends AppCompatActivity {
         orderedCards = new ArrayList<>();
 
         if (isNewGame) {
-            //shuffle Cards. Save the order of the cards for retaining instance.
+            //If this is a new game, shuffle the cards. Save the order of the shuffled deck for retaining instance.
+            //Do not shuffle if it's an ongoing game (screen rotation, resuming, etc)
             Collections.shuffle(cards);
             orderedCards = new ArrayList<>();
             for (Card card : cards) {
@@ -234,6 +239,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         gridAdapter.setOnScoreChangeListener(new GridAdapter.OnScoreChangeListener() {
+
+            //If the score is changed, modify scoreTexhView
             @Override
             public void onScoreChanged(int score) {
 
@@ -242,12 +249,14 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
+            //All pairs are matched, the end of the game.
             @Override
             public void onFinalScore(int score) {
 
                 Bundle bundle = new Bundle();
                 bundle.putInt("score", score);
 
+                //Show congrats dialog. Pass score as a bundle.
                 FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                 ft.addToBackStack(null);
                 CongratsDialogFragment dialogFragment = new CongratsDialogFragment();
@@ -255,7 +264,8 @@ public class MainActivity extends AppCompatActivity {
                 dialogFragment.setCancelable(false);
                 dialogFragment.show(ft, "dialog");
 
-                matchedCardsID.clear();
+                //Reset game data and start a fresh game.
+                matchedCardIdList.clear();
 
                 startGame(true, cards);
                 scoreTextViewValue = 0;
@@ -269,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
 
                 for (Card card : cards) {
                     if (card.cardId == cardIdFromListener) {
-                        matchedCardsID.add(card.cardId);
+                        matchedCardIdList.add(card.cardId);
                         card.isMatched = true;
                     }
                 }
