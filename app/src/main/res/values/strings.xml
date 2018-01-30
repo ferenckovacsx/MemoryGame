@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">MemoryGame</string>
+    <string name="rank">Rank</string>
+    <string name="name">Name</string>
+    <string name="score">Score</string>
+    <string name="empty_list">No highscores yet!</string>
+    <string name="insert_name_hint">Enter your name&#8230;</string>
+    <string name="name_validation_rules">4&#8211;10 characters, letters of the alphabet only</string>
+    <string name="submit">Submit</string>
+    <string name="cancel">Cancel</string>
+    <string name="congratulations_message">Congratulations!\nYou have matched all the cards.</string>
+    <string name="your_score_is">Your score is: %1$s</string>
+    <string name="default_imageview_description">imageview</string>
 </resources>

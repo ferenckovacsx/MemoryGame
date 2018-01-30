@@ -1,0 +1,44 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.android.memorygame.HighScoresFragment">
+
+    <ImageView
+        android:contentDescription="@string/default_imageview_description"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/layout_background" />
+
+    <ListView
+        android:id="@+id/highScoresListView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_margin="25dp"
+        android:background="@drawable/shape_highscores_table_background"
+        android:divider="@null"
+        android:dividerHeight="0dp">
+
+    </ListView>
+
+    <FrameLayout
+        android:id="@+id/emptyListFrameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="25dp"
+        android:background="@drawable/shape_highscores_table_background"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/empty_list"
+            android:textColor="#ffffff"
+            android:textSize="30sp" />
+
+    </FrameLayout>
+
+</RelativeLayout>
